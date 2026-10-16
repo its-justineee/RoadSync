@@ -1,13 +1,38 @@
+interface Reportable {
+    fun submitReport(): String
+}
 
 abstract class Incident(
     val incidentId: Int,
-    val location: String,
-    val description: String
+    location: String,
+    description: String
 ) {
 
-    abstract fun getIncidentType(): String
+    private var _location: String = location
+    private var _description: String = description
 
-    fun displayDetails() {
+    public val location: String
+        get() = _location
+
+    public val description: String
+        get() = _description
+
+    public fun updateLocation(newLocation: String) {
+        if (newLocation.isNotBlank()) {
+            _location = newLocation
+        }
+    }
+
+    public fun updateDescription(newDescription: String) {
+        if (newDescription.isNotBlank()) {
+            _description = newDescription
+        }
+    }
+
+    public abstract fun getIncidentType(): String
+
+    // PUBLIC CONCRETE METHOD
+    public fun displayDetails() {
         println("Incident ID: $incidentId")
         println("Location: $location")
         println("Description: $description")
@@ -38,22 +63,29 @@ class RoadHazard(
 }
 
 class Report(
-    val reportId: Int,
-    val reporterName: String,
-    val incident: Incident
-) {
+    public val reportId: Int,
+    public val reporterName: String,
+    public val incident: Incident
+) : Reportable {
 
-    fun displayReport() {
+    override fun submitReport(): String {
+        return "Report $reportId submitted by $reporterName"
+    }
+
+    public fun displayReport() {
         println("===== ROAD INCIDENT REPORT =====")
         println("Report ID: $reportId")
         println("Reporter: $reporterName")
+        println(submitReport())
         println()
         incident.displayDetails()
+        println("================================")
     }
 }
 
 fun main() {
 
+    // OBJECTS
     val accident = RoadAccident(
         101,
         "Nasugbu National Highway",
@@ -66,6 +98,12 @@ fun main() {
         "Road obstruction"
     )
 
+    val report = Report(
+        1001,
+        "Juan Dela Cruz",
+        accident
+    )
+
     accident.displayDetails()
 
     println()
@@ -74,11 +112,14 @@ fun main() {
 
     println()
 
-    val report = Report(
-        1001,
-        "Juan Dela Cruz",
-        accident
-    )
-
     report.displayReport()
+
+    println()
+
+    println("===== UPDATE INCIDENT =====")
+
+    accident.updateLocation("Barangay Bucana, Nasugbu")
+    accident.updateDescription("Vehicle collision reported")
+
+    accident.displayDetails()
 }

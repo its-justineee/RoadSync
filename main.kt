@@ -1,3 +1,4 @@
+
 interface Reportable {
     fun submitReport(): String
 }
@@ -7,32 +8,30 @@ abstract class Incident(
     location: String,
     description: String
 ) {
-
     private var _location: String = location
     private var _description: String = description
 
-    public val location: String
+    val location: String
         get() = _location
 
-    public val description: String
+    val description: String
         get() = _description
 
-    public fun updateLocation(newLocation: String) {
+    fun updateLocation(newLocation: String) {
         if (newLocation.isNotBlank()) {
             _location = newLocation
         }
     }
 
-    public fun updateDescription(newDescription: String) {
+    fun updateDescription(newDescription: String) {
         if (newDescription.isNotBlank()) {
             _description = newDescription
         }
     }
 
-    public abstract fun getIncidentType(): String
+    abstract fun getIncidentType(): String
 
-    // PUBLIC CONCRETE METHOD
-    public fun displayDetails() {
+    fun displayDetails() {
         println("Incident ID: $incidentId")
         println("Location: $location")
         println("Description: $description")
@@ -63,63 +62,154 @@ class RoadHazard(
 }
 
 class Report(
-    public val reportId: Int,
-    public val reporterName: String,
-    public val incident: Incident
+    val reportId: Int,
+    val reporterName: String,
+    val incident: Incident
 ) : Reportable {
 
     override fun submitReport(): String {
         return "Report $reportId submitted by $reporterName"
     }
 
-    public fun displayReport() {
+    fun displayReport() {
         println("===== ROAD INCIDENT REPORT =====")
         println("Report ID: $reportId")
         println("Reporter: $reporterName")
         println(submitReport())
         println()
+
         incident.displayDetails()
+
         println("================================")
+    }
+}
+
+fun readNonEmpty(prompt: String): String {
+    while (true) {
+        print(prompt)
+        val input = readlnOrNull()?.trim().orEmpty()
+
+        if (input.isNotBlank()) {
+            return input
+        }
+
+        println("Input cannot be empty. Try again.")
+    }
+}
+
+fun submitNewReport(
+    reports: MutableList<Report>,
+    reportId: Int,
+    incidentId: Int
+) {
+    println("\n===== SUBMIT INCIDENT REPORT =====")
+
+    val reporterName = readNonEmpty("Enter your name: ")
+
+    println("\nSelect Incident Type:")
+    println("1. Road Accident")
+    println("2. Road Hazard")
+
+    var incidentType = ""
+
+    while (incidentType.isEmpty()) {
+        print("Enter choice: ")
+
+        when (readlnOrNull()?.trim()) {
+            "1" -> incidentType = "1"
+            "2" -> incidentType = "2"
+            else -> println("Invalid choice. Please select 1 or 2.")
+        }
+    }
+
+    val location = readNonEmpty("Enter incident location: ")
+    val description = readNonEmpty("Describe the incident: ")
+
+    val incident: Incident = when (incidentType) {
+        "1" -> RoadAccident(
+            incidentId,
+            location,
+            description
+        )
+
+        else -> RoadHazard(
+            incidentId,
+            location,
+            description
+        )
+    }
+
+    val report = Report(
+        reportId,
+        reporterName,
+        incident
+    )
+
+    reports.add(report)
+
+    println("\n${report.submitReport()}")
+    println("Thank you for using RoadSync!")
+}
+
+fun viewReports(reports: List<Report>) {
+    println("\n===== ALL INCIDENT REPORTS =====")
+
+    if (reports.isEmpty()) {
+        println("No reports available.")
+        return
+    }
+
+    for (report in reports) {
+        report.displayReport()
+        println()
     }
 }
 
 fun main() {
 
-    // OBJECTS
-    val accident = RoadAccident(
-        101,
-        "Nasugbu National Highway",
-        "Motorcycle collision"
-    )
+    val reports = mutableListOf<Report>()
 
-    val hazard = RoadHazard(
-        102,
-        "Nasugbu Town Proper",
-        "Road obstruction"
-    )
+    var nextReportId = 1001
+    var nextIncidentId = 101
 
-    val report = Report(
-        1001,
-        "Juan Dela Cruz",
-        accident
-    )
+    while (true) {
 
-    accident.displayDetails()
+        println("\n================================")
+        println("             ROADSYNC")
+        println("   ROAD INCIDENT REPORTING SYSTEM")
+        println("================================")
+        println("1. Submit a Report")
+        println("2. View All Reports")
+        println("3. Exit")
+        println("================================")
 
-    println()
+        print("Enter your choice: ")
 
-    hazard.displayDetails()
+        when (readlnOrNull()?.trim()) {
 
-    println()
+            "1" -> {
+                submitNewReport(
+                    reports,
+                    nextReportId,
+                    nextIncidentId
+                )
 
-    report.displayReport()
+                nextReportId++
+                nextIncidentId++
+            }
 
-    println()
+            "2" -> {
+                viewReports(reports)
+            }
 
-    println("===== UPDATE INCIDENT =====")
+            "3" -> {
+                println("Thank you for using RoadSync!")
+                break
+            }
 
-    accident.updateLocation("Barangay Bucana, Nasugbu")
-    accident.updateDescription("Vehicle collision reported")
-
-    accident.displayDetails()
+            else -> {
+                println("Invalid choice. Please try again.")
+            }
+        }
+    }
 }
